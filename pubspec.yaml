@@ -1,0 +1,49 @@
+name: app_mr_new
+description: A new Flutter project.
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.2
+  dio: ^5.4.0
+  flutter_dotenv: ^5.1.0
+  get_it: ^7.6.4
+  equatable: ^2.0.5
+  json_annotation: ^4.9.0
+  cupertino_icons: ^1.0.8
+  http: ^1.2.2
+  share_plus: ^10.0.2
+  screenshot: ^3.0.0
+  cross_file: ^0.3.2
+  image_picker: ^1.1.2
+  google_fonts: ^6.1.0
+  path_provider: ^2.1.2
+  permission_handler: ^10.0.0
+  flutter_colorpicker: ^1.0.3
+  url_launcher: ^6.3.0
+  webview_flutter: ^4.7.0
+  youtube_player_flutter: ^9.0.0
+  flutter_pdfview: ^1.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.9
+  json_serializable: ^6.8.0
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env
+    - assets/images/
+    - assets/banner/
+    - assets/icon/
