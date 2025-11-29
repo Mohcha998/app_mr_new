@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../services/merchandise_service.dart';
 import '../../../models/merchandise_by_type.dart';
+import '../../../models/merchandise_item.dart';
+import '../category_detail/category_detail_page.dart';
 import 'category_group.dart';
 
 class CategorySection extends StatefulWidget {
@@ -27,9 +29,9 @@ class _CategorySectionState extends State<CategorySection> {
 
   Future<void> loadCategories() async {
     try {
-      final byBooks = await merchandiseService.getByTipe(1); // Books
-      final byFashion = await merchandiseService.getByTipe(2); // Fashion
-      final byOthers = await merchandiseService.getByTipe(4); // Others
+      final byBooks = await merchandiseService.getByTipe(1);
+      final byFashion = await merchandiseService.getByTipe(2);
+      final byOthers = await merchandiseService.getByTipe(4);
 
       setState(() {
         books = byBooks.isNotEmpty ? byBooks.first : null;
@@ -60,7 +62,9 @@ class _CategorySectionState extends State<CategorySection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // TITLE
+          // ==============================
+          // TITLE + SEE ALL
+          // ==============================
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -68,24 +72,47 @@ class _CategorySectionState extends State<CategorySection> {
                 "Categories",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              Row(
-                children: const [
-                  Text(
-                    "See All",
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
+
+              // ========== SEE ALL BUTTON ==========
+              GestureDetector(
+                onTap: () async {
+                  final List<MerchandiseItem> allProducts =
+                      await merchandiseService.getAllFlat();
+
+                  if (!mounted) return;
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CategoryDetailPage(
+                        title: "All Merchandise",
+                        products: allProducts,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 6),
-                  Icon(Icons.arrow_forward, color: Colors.red),
-                ],
+                  );
+                },
+                child: Row(
+                  children: const [
+                    Text(
+                      "See All",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(width: 6),
+                    Icon(Icons.arrow_forward, color: Colors.red),
+                  ],
+                ),
               ),
             ],
           ),
 
           const SizedBox(height: 20),
 
+          // ==============================
+          // CATEGORY ITEMS
+          // ==============================
           Wrap(
             spacing: 20,
             runSpacing: 20,
@@ -96,10 +123,21 @@ class _CategorySectionState extends State<CategorySection> {
                   title: books!.kategoriNama,
                   count: books!.merchandise.length,
                   images: books!.merchandise
-                      .map((item) => item.gambar) // ← gambar API
+                      .map((e) => e.gambar)
                       .take(4)
                       .toList(),
                   width: itemWidth,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CategoryDetailPage(
+                          title: books!.kategoriNama,
+                          products: books!.merchandise,
+                        ),
+                      ),
+                    );
+                  },
                 ),
 
               // FASHION
@@ -108,10 +146,21 @@ class _CategorySectionState extends State<CategorySection> {
                   title: fashion!.kategoriNama,
                   count: fashion!.merchandise.length,
                   images: fashion!.merchandise
-                      .map((item) => item.gambar) // ← gambar API
+                      .map((e) => e.gambar)
                       .take(4)
                       .toList(),
                   width: itemWidth,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CategoryDetailPage(
+                          title: fashion!.kategoriNama,
+                          products: fashion!.merchandise,
+                        ),
+                      ),
+                    );
+                  },
                 ),
 
               // OTHERS
@@ -120,10 +169,21 @@ class _CategorySectionState extends State<CategorySection> {
                   title: others!.kategoriNama,
                   count: others!.merchandise.length,
                   images: others!.merchandise
-                      .map((item) => item.gambar) // ← gambar API
+                      .map((e) => e.gambar)
                       .take(4)
                       .toList(),
                   width: itemWidth,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CategoryDetailPage(
+                          title: others!.kategoriNama,
+                          products: others!.merchandise,
+                        ),
+                      ),
+                    );
+                  },
                 ),
             ],
           ),

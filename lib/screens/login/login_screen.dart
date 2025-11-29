@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/auth_provider.dart';
+import '../../session/user_session.dart';
 import '../home/home_screen.dart';
 import './register_screen.dart';
 
@@ -12,8 +14,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   bool passwordVisible = false;
 
@@ -26,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
         width: double.infinity,
         height: double.infinity,
 
-        // Background gradasi
+        // ================= BACKGROUND =================
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFF5C0A0C), Color(0xFF8A1012), Color(0xFFB41718)],
@@ -39,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // FOTO
+                // ================= LOGO =================
                 Padding(
                   padding: const EdgeInsets.only(top: 20),
                   child: Image.asset(
@@ -51,18 +53,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 20),
 
+                // ================= FORM =================
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // EMAIL
+                      // ---------- EMAIL ----------
                       TextField(
                         controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
+                          hintText: "Email",
                           filled: true,
                           fillColor: Colors.white,
-                          hintText: "Email",
                           contentPadding: const EdgeInsets.symmetric(
                             vertical: 18,
                             horizontal: 16,
@@ -76,14 +80,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       const SizedBox(height: 16),
 
-                      // PASSWORD
+                      // ---------- PASSWORD ----------
                       TextField(
                         controller: passwordController,
                         obscureText: !passwordVisible,
                         decoration: InputDecoration(
+                          hintText: "Password",
                           filled: true,
                           fillColor: Colors.white,
-                          hintText: "Password",
                           contentPadding: const EdgeInsets.symmetric(
                             vertical: 18,
                             horizontal: 16,
@@ -108,43 +112,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 20),
 
-                      // REMEMBER ME + FORGOT PASSWORD
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: false,
-                                onChanged: (v) {},
-                                activeColor: Colors.white,
-                                checkColor: Colors.black,
-                              ),
-                              const Text(
-                                "Remember me",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/forgot-password');
-                            },
-                            child: const Text(
-                              "Forgot Password ?",
-                              style: TextStyle(color: Color(0xFFFFD93D)),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      // LOGIN BUTTON
+                      // ================= LOGIN BUTTON =================
                       authProvider.isLoading
-                          ? const Center(child: CircularProgressIndicator())
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            )
                           : SizedBox(
                               width: double.infinity,
                               height: 54,
@@ -160,24 +136,50 @@ class _LoginScreenState extends State<LoginScreen> {
                                   final password = passwordController.text
                                       .trim();
 
+                                  if (email.isEmpty || password.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Email dan Password wajib diisi",
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
                                   await authProvider.login(
                                     email: email,
                                     password: password,
                                   );
 
+                                  // ================= LOGIN BERHASIL =================
                                   if (authProvider.user != null && mounted) {
+                                    final user = authProvider.user!;
+
+                                    /// ✅ SIMPAN KE SESSION (WAJIB)
+                                    UserSession.name = user.name;
+                                    UserSession.email = user.email;
+                                    UserSession.phone = user.mobile;
+
+                                    debugPrint("✅ LOGIN SUCCESS");
+                                    debugPrint("Name  : ${UserSession.name}");
+                                    debugPrint("Email : ${UserSession.email}");
+                                    debugPrint("Phone : ${UserSession.phone}");
+
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => HomeScreen(
-                                          user: authProvider.user!,
-                                        ),
+                                        builder: (_) => HomeScreen(user: user),
                                       ),
                                     );
-                                  } else if (authProvider.error != null) {
+                                  }
+                                  // ================= LOGIN GAGAL =================
+                                  else if (authProvider.error != null &&
+                                      mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(authProvider.error!),
+                                        backgroundColor: Colors.red,
                                       ),
                                     );
                                   }
@@ -192,9 +194,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
 
-                      // SIGN UP → pindah ke halaman Register
+                      // ================= REGISTER =================
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

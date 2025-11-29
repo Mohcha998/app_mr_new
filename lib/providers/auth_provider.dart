@@ -28,9 +28,15 @@ class AuthProvider with ChangeNotifier {
         mobile: mobile,
         password: password,
       );
+
       _user = loggedInUser;
+
+      /// ✅ DEBUG UNTUK CEK
+      debugPrint("AUTH PROVIDER USER:");
+      debugPrint("Email: ${_user?.email}");
     } catch (e) {
       _error = e.toString();
+      _user = null;
     } finally {
       _isLoading = false;
       notifyListeners();

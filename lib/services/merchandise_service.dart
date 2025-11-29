@@ -10,7 +10,7 @@ class MerchandiseService {
   final String baseUrl = ApiConstants.baseUrl;
 
   // ----------------------------------------------------------
-  // GET ALL MERCHANDISE
+  // GET ALL MERCHANDISE (GROUPED VERSION)
   // ----------------------------------------------------------
   Future<List<MerchandiseGroup>> getAllMerchandise() async {
     final url = Uri.parse("$baseUrl/merchandise");
@@ -28,6 +28,27 @@ class MerchandiseService {
         .toList();
 
     return list;
+  }
+
+  // ----------------------------------------------------------
+  // GET ALL MERCHANDISE — FLAT LIST
+  // endpoint: /merchandise/all
+  // response field: "merchandise"
+  // ----------------------------------------------------------
+  Future<List<MerchandiseItem>> getAllFlat() async {
+    final url = Uri.parse("$baseUrl/merchandise/all");
+
+    final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load all merchandise");
+    }
+
+    final data = jsonDecode(response.body);
+
+    return (data["merchandise"] as List)
+        .map((e) => MerchandiseItem.fromJson(e))
+        .toList();
   }
 
   // ----------------------------------------------------------
@@ -87,5 +108,23 @@ class MerchandiseService {
         .toList();
 
     return list;
+  }
+
+  Future<MerchandiseItem?> getById(int id) async {
+    final url = Uri.parse("$baseUrl/merchandise/byid?id=$id");
+
+    final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load merchandise by ID");
+    }
+
+    final data = jsonDecode(response.body);
+
+    final list = (data["merchandise"] as List)
+        .map((e) => MerchandiseItem.fromJson(e))
+        .toList();
+
+    return list.isNotEmpty ? list.first : null;
   }
 }

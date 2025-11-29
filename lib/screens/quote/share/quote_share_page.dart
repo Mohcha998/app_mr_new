@@ -9,6 +9,7 @@ class QuoteSharePage extends StatelessWidget {
   final Offset textPosition;
   final double textBoxWidth;
   final String font;
+  final Color textColor; // <-- menerima warna dari editor
 
   const QuoteSharePage({
     super.key,
@@ -17,6 +18,7 @@ class QuoteSharePage extends StatelessWidget {
     required this.textPosition,
     required this.textBoxWidth,
     required this.font,
+    required this.textColor, // <-- ditambahkan
   });
 
   TextStyle _getFontStyle(String font, Color color, double size) {
@@ -57,7 +59,8 @@ class QuoteSharePage extends StatelessWidget {
         elevation: 0,
         foregroundColor: Colors.black,
         actions: [
-          TextButton(
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.black),
             onPressed: () async {
               final shouldExit = await showDialog<bool>(
                 context: context,
@@ -70,35 +73,38 @@ class QuoteSharePage extends StatelessWidget {
                     title: const Text(
                       "Leave This Page?",
                       style: TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
                     content: const Text(
-                      "If you leave this page now, your edited quote image will not be saved. "
+                      "If you leave this page now, your edited quote image will not be saved.\n"
                       "Are you sure you want to exit?",
+                      textAlign: TextAlign.center,
                     ),
                     actions: [
+                      // YES = exit
                       TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Stay"),
-                      ),
-                      ElevatedButton(
                         onPressed: () => Navigator.pop(context, true),
+                        child: const Text("Yes"),
+                      ),
+
+                      // NO = stay (pindah ke kanan sesuai permintaan)
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, false),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                         ),
-                        child: const Text("Exit"),
+                        child: const Text("No"),
                       ),
                     ],
                   );
                 },
               );
 
-              // Jika user memilih keluar
               if (shouldExit == true) {
                 Navigator.popUntil(context, (route) => route.isFirst);
               }
             },
-            child: const Text("Done", style: TextStyle(color: Colors.black)),
           ),
         ],
       ),
@@ -106,70 +112,67 @@ class QuoteSharePage extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // AREA GAMBAR FINAL TANPA BACKGROUND HITAM
           Center(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Stack(
-                children: [
-                  // IMAGE
-                  isAsset
-                      ? Image.asset(
-                          imagePath,
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          height: MediaQuery.of(context).size.height * 0.6,
-                          fit: BoxFit.cover,
-                        )
-                      : Image.file(
-                          File(imagePath),
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          height: MediaQuery.of(context).size.height * 0.6,
-                          fit: BoxFit.cover,
+            child: AspectRatio(
+              aspectRatio: 3 / 4, // <-- FIXED RATIO 3:4
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  children: [
+                    isAsset
+                        ? Image.asset(
+                            imagePath,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          )
+                        : Image.file(
+                            File(imagePath),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          ),
+
+                    // ================= TEXT + SIGNATURE =================
+                    Positioned(
+                      left: textPosition.dx,
+                      top: textPosition.dy,
+                      child: SizedBox(
+                        width: textBoxWidth,
+                        child: Column(
+                          children: [
+                            Text(
+                              quote,
+                              textAlign: TextAlign.center,
+                              style: _getFontStyle(font, textColor, 22)
+                                  .copyWith(
+                                    shadows: [
+                                      Shadow(
+                                        blurRadius: 3,
+                                        color: Colors.black.withOpacity(0.4),
+                                        offset: const Offset(1, 1),
+                                      ),
+                                    ],
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Image.asset(
+                              "assets/images/signature.png",
+                              height: 32,
+                              color: textColor,
+                            ),
+                          ],
                         ),
-
-                  // TEXT + SIGNATURE (TANPA BACKGROUND)
-                  Positioned(
-                    left: textPosition.dx,
-                    top: textPosition.dy,
-                    child: SizedBox(
-                      width: textBoxWidth,
-                      child: Column(
-                        children: [
-                          Text(
-                            quote,
-                            textAlign: TextAlign.center,
-                            style: _getFontStyle(font, Colors.white, 22)
-                                .copyWith(
-                                  shadows: [
-                                    Shadow(
-                                      blurRadius: 3,
-                                      color: Colors.black.withOpacity(0.4),
-                                      offset: const Offset(1, 1),
-                                    ),
-                                  ],
-                                ),
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // SIGNATURE
-                          Image.asset(
-                            "assets/images/signature.png",
-                            height: 32,
-                            color: Colors.white,
-                          ),
-                        ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
 
           const SizedBox(height: 24),
 
-          // SHARE BUTTON
           ElevatedButton(
             onPressed: () async {
               try {

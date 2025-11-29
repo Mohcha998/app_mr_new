@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import './widgets/search_bar.dart';
-import './widgets/banner_section.dart';
-import './widgets/brand_section.dart';
-import './widgets/category_section.dart';
+import '../widgets/search_bar.dart';
+import '../widgets/banner_section.dart';
+import '../widgets/brand_section.dart';
+import '../widgets/category_section.dart';
 
 class MerchandisePage extends StatelessWidget {
   const MerchandisePage({super.key});

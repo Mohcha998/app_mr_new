@@ -9,25 +9,38 @@ class ApiService {
     String? mobile,
     required String password,
   }) async {
+    final uri = Uri.parse("${ApiConstants.baseUrl}/login");
+
     final response = await http.post(
-      Uri.parse(ApiConstants.login),
-      headers: {"Content-Type": "application/json"},
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
       body: jsonEncode({
-        "email": email ?? "",
-        "mobile": mobile ?? "",
+        if (email != null && email.isNotEmpty) "email": email,
+        if (mobile != null && mobile.isNotEmpty) "mobile": mobile,
         "password": password,
       }),
     );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return User.fromJson(data);
-    } else if (response.statusCode == 401) {
-      throw Exception("Unauthorized: Email/HP atau password salah");
-    } else if (response.statusCode == 404) {
-      throw Exception("User tidak ditemukan");
+    final Map<String, dynamic> body = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && body["success"] == true) {
+      /// ✅ PENTING: ambil body["data"]
+      final userJson = body["data"];
+
+      final user = User.fromJson(userJson);
+
+      /// ✅ DEBUG (hapus nanti kalau mau)
+      print("LOGIN SUCCESS:");
+      print("Name  : ${user.name}");
+      print("Email : ${user.email}");
+      print("Phone : ${user.mobile}");
+
+      return user;
     } else {
-      throw Exception("Login gagal: ${response.body}");
+      throw Exception(body["message"] ?? "Login gagal");
     }
   }
 }

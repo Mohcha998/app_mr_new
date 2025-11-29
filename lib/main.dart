@@ -4,8 +4,8 @@ import 'providers/auth_provider.dart';
 
 // Screens
 import 'screens/login/login_screen.dart';
-import 'screens/quote/edit_image_screen.dart';
-import 'screens/quote/quote_editor_page.dart';
+import 'screens/quote/edit/edit_image_screen.dart';
+import 'screens/quote/editor/quote_editor_page.dart';
 
 void main() {
   runApp(
@@ -32,8 +32,8 @@ class MyApp extends StatelessWidget {
       // ✅ Daftar route aplikasi
       routes: {
         '/login': (context) => const LoginScreen(),
-        '/edit_image_screen': (context) => const EditImagePage(),
-        '/quote_editor_page': (context) {
+        '/edit/edit_image_screen': (context) => const EditImagePage(),
+        '/editor/quote_editor_page': (context) {
           final args =
               ModalRoute.of(context)!.settings.arguments
                   as Map<String, dynamic>;
