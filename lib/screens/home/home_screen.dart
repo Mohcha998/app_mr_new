@@ -10,6 +10,7 @@ import '../../models/youtube_video_model.dart';
 import '../../services/quote_service.dart';
 import '../../services/youtube_service.dart';
 import '../quote/edit/edit_image_screen.dart';
+import '../connect/connect_screen.dart';
 import '../videos/videos_screen.dart';
 import '../quote-gallery/quote_gallery_screen.dart';
 import '../free-resource/free_resource_screen.dart';
@@ -47,15 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _quoteFuture = QuoteService().getTodayQuote(widget.user.id);
     _futureVideos = YoutubeService.getLatestVideos();
 
+    // LOAD POPUP ADS
     AdsService.getPopup().then((data) {
       if (data != null && !_hasShownPopup) {
         _hasShownPopup = true;
         _popupData = data;
 
-        // FIX: Pastikan context siap
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-
           showDialog(
             context: context,
             barrierDismissible: true,
@@ -75,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/signature.png');
       await file.writeAsBytes(byteData.buffer.asUint8List());
+
       await Share.shareXFiles([XFile(file.path)], text: message);
     } catch (e) {
       Share.share(message);
@@ -85,7 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: const BottomNavbar(currentIndex: 0),
+
+      /// FIXED: user wajib dikirim ke BottomNavbar
+      // bottomNavigationBar: BottomNavbar(currentIndex: 0, user: widget.user),
       body: SafeArea(
         child: FutureBuilder<Quote>(
           future: _quoteFuture,
@@ -175,16 +178,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
 
-                        // ------------ ICON SHARE & EDIT ------------
+                        // ------------ SHARE + EDIT ICONS ------------
                         Positioned(
                           right: 12,
                           bottom: 12,
                           child: Row(
                             children: [
+                              // SHARE
                               GestureDetector(
-                                onTap: () {
-                                  _shareQuote(quote);
-                                },
+                                onTap: () => _shareQuote(quote),
                                 child: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
@@ -196,6 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(width: 8),
 
+                              // EDIT
                               GestureDetector(
                                 onTap: () {
                                   Navigator.push(
@@ -223,6 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 12),
 
                   Center(
@@ -253,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
 
                   // =========================
-                  // Grid Menu
+                  // GRID MENU
                   // =========================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -261,9 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisCount: 4,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       children: [
-                        // MerchandisePage
                         _menuItem("assets/icon/merch.png", "Merchandise", () {
                           Navigator.push(
                             context,
@@ -272,7 +274,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         }),
+
                         _menuItem("assets/icon/program.png", "Program", () {}),
+
                         _menuItem("assets/icon/ps.png", "Personality Test", () {
                           Navigator.push(
                             context,
@@ -281,18 +285,25 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         }),
+
                         _menuItem("assets/icon/video.png", "Video", () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => VideosScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const VideosScreen(),
+                            ),
                           );
                         }),
+
                         _menuItem("assets/icon/audio.png", "Audio", () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => AudioPage()),
+                            MaterialPageRoute(
+                              builder: (_) => const AudioPage(),
+                            ),
                           );
                         }),
+
                         _menuItem("assets/icon/fr.png", "Free Resources", () {
                           Navigator.push(
                             context,
@@ -301,19 +312,27 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         }),
-                        _menuItem("assets/icon/connect.png", "Connect", () {}),
+
+                        _menuItem("assets/icon/connect.png", "Connect", () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ConnectWithMerryPage(),
+                            ),
+                          );
+                        }),
+
                         _menuItem("assets/icon/info.png", "Info", () {}),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 20),
-
                   const HomeNewsSection(),
                   const SizedBox(height: 24),
 
                   // =========================
-                  // Featured Video
+                  // FEATURED VIDEO
                   // =========================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -326,7 +345,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 TextSpan(
                                   text: "Featured ",
                                   style: TextStyle(
-                                    color: Colors.black,
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -344,17 +362,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
 
-                        /// ========== FIXED SEE ALL ==========
                         GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const VideosScreen(), // FIXED
+                                builder: (_) => const VideosScreen(),
                               ),
                             );
                           },
-                          child: Text(
+                          child: const Text(
                             "See All",
                             style: TextStyle(
                               color: Colors.grey,
@@ -418,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 24),
 
                   // =========================
-                  // Quotes Gallery
+                  // QUOTES GALLERY
                   // =========================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -439,7 +456,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 TextSpan(
                                   text: "Gallery",
                                   style: TextStyle(
-                                    color: Colors.black,
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -448,6 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
+
                         GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -457,7 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
-                          child: Text(
+                          child: const Text(
                             "See All",
                             style: TextStyle(
                               color: Colors.grey,
@@ -476,13 +493,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: 6,
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 3,
                             crossAxisSpacing: 8,
                             mainAxisSpacing: 8,
                           ),
+                      itemCount: 6,
                       itemBuilder: (context, i) {
                         final int index = (i % 4) + 1;
                         final String url =

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../birdtest_test/birdtest_test_screen.dart';
 
 class BirdtestPage extends StatelessWidget {
   const BirdtestPage({super.key});
@@ -151,7 +152,10 @@ class BirdtestPage extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              Navigator.pushNamed(context, "/birdtest-test");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BirdtestScreen()),
+              );
             },
             child: const Text(
               "Ambil Test",

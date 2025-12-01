@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../session/user_session.dart';
-import '../home/home_screen.dart';
+import '../main_tab/main_tab_screen.dart';
 import './register_screen.dart';
+import './forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // ================= LOGO =================
+                // ================= LOGO / IMAGE =================
                 Padding(
                   padding: const EdgeInsets.only(top: 20),
                   child: Image.asset(
@@ -112,6 +113,50 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
+                      const SizedBox(height: 12),
+
+                      // ================= REMEMBER ME & FORGOT PASSWORD =================
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: authProvider.rememberMe,
+                                activeColor: Colors.white,
+                                checkColor: Colors.black,
+                                side: const BorderSide(color: Colors.white),
+                                onChanged: (value) {
+                                  authProvider.setRememberMe(value ?? false);
+                                },
+                              ),
+                              const Text(
+                                "Remember me",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ForgetPasswordPage(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              "Forgot Password ?",
+                              style: TextStyle(
+                                color: Color(0xFFFFD93D),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
                       const SizedBox(height: 20),
 
                       // ================= LOGIN BUTTON =================
@@ -156,20 +201,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (authProvider.user != null && mounted) {
                                     final user = authProvider.user!;
 
-                                    /// ✅ SIMPAN KE SESSION (WAJIB)
+                                    // SIMPAN KE SESSION
                                     UserSession.name = user.name;
                                     UserSession.email = user.email;
                                     UserSession.phone = user.mobile;
 
-                                    debugPrint("✅ LOGIN SUCCESS");
-                                    debugPrint("Name  : ${UserSession.name}");
-                                    debugPrint("Email : ${UserSession.email}");
-                                    debugPrint("Phone : ${UserSession.phone}");
-
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => HomeScreen(user: user),
+                                        builder: (_) =>
+                                            MainTabScreen(user: user),
                                       ),
                                     );
                                   }

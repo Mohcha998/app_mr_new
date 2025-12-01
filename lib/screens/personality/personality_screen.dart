@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/personality_model.dart';
 import '../../services/personality_service.dart';
+import '../birdtest_result/birdtest_result_screen.dart';
 import '../../session/user_session.dart';
 import '../birdtest/birdtest_screen.dart';
 import 'widgets/personality_card.dart';
@@ -52,7 +53,10 @@ class _PersonalityPageState extends State<PersonalityPage> {
       if (!mounted) return;
 
       if (isBirdtest == 1) {
-        Navigator.pushNamed(context, '/birdtest-result', arguments: email);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BirdtestResultScreen()),
+        );
       } else {
         Navigator.push(
           context,
