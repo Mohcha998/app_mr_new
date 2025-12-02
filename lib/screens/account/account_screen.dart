@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../home/widgets/bottom_navbar.dart';
+// import '../home/widgets/bottom_navbar.dart';
 import '../../session/user_session.dart';
-import '../../models/user_model.dart'; // <-- tambahkan ini
+import '../../models/user_model.dart';
 
 class AccountScreen extends StatelessWidget {
   final User user;
 
-  const AccountScreen({super.key, required this.user}); // <-- tambahkan ini
+  const AccountScreen({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../home/widgets/bottom_navbar.dart';
+// import '../home/widgets/bottom_navbar.dart';
 import '../../models/user_model.dart'; // pastikan path benar
 
 class GiftScreen extends StatelessWidget {

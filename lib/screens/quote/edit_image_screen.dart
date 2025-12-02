@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../models/quote_model.dart';
+import '../../models/quote_model.dart';
 
 class EditImagePage extends StatefulWidget {
   const EditImagePage({super.key});

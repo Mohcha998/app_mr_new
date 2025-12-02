@@ -6,5 +6,5 @@ import 'screens/login/forgot_password_screen.dart';
 final Map<String, WidgetBuilder> appRoutes = {
   '/login': (context) => const LoginScreen(),
   '/register': (context) => const RegisterScreen(),
-  '/forgot-password': (context) => const ForgotPasswordScreen(),
+  '/forgot-password': (context) => const ForgetPasswordPage(),
 };

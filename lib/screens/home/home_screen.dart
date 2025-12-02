@@ -9,7 +9,7 @@ import '../../models/user_model.dart';
 import '../../models/youtube_video_model.dart';
 import '../../services/quote_service.dart';
 import '../../services/youtube_service.dart';
-import '../quote/edit/edit_image_screen.dart';
+import '../quote/edit_image_screen.dart';
 import '../connect/connect_screen.dart';
 import '../videos/videos_screen.dart';
 import '../quote-gallery/quote_gallery_screen.dart';
@@ -21,9 +21,9 @@ import 'widgets/ads_popup.dart';
 import '../../services/ads_popup_service.dart';
 import '../../models/ads_popup_model.dart';
 
-import 'widgets/bottom_navbar.dart';
+// import 'widgets/bottom_navbar.dart';
 import 'widgets/home_news_section.dart';
-import '../quote/preview/quote_preview_page.dart';
+import '../quote/quote_preview_page.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;

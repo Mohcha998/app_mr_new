@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../share/quote_share_page.dart';
+import 'quote_share_page.dart';
 
 class QuoteEditorPage extends StatefulWidget {
   final String imagePath;

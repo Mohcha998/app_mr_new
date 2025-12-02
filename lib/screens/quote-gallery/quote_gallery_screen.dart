@@ -190,8 +190,7 @@ class _QuotesGalleryPageState extends State<QuotesGalleryPage> {
             const SizedBox(height: 10),
 
             // ============= Home News Section (dipisah) =============
-            const HomeNewsSection(),
-
+            // const HomeNewsSection(),
             const SizedBox(height: 30),
           ],
         ),
