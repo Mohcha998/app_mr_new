@@ -66,7 +66,6 @@ class _BirdtestResultScreenState extends State<BirdtestResultScreen> {
       // Hitung hasil tertinggi
       var sortedBirds = scores.entries.where((e) => e.value > 0).toList()
         ..sort((a, b) => b.value.compareTo(a.value));
-
       var highestBirds = [sortedBirds[0].key];
       int highestScore = sortedBirds[0].value;
       if (sortedBirds.length > 1 && sortedBirds[1].value == highestScore) {
@@ -171,7 +170,7 @@ class _BirdtestResultScreenState extends State<BirdtestResultScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.red,
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         title: const Text('Bird Test'),
         centerTitle: true,
       ),

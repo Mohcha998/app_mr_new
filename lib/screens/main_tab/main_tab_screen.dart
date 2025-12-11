@@ -17,27 +17,34 @@ class MainTabScreen extends StatefulWidget {
 class _MainTabScreenState extends State<MainTabScreen> {
   int _currentIndex = 0;
 
-  late final List<Widget> _pages;
+  late List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+    _updatePages();
+  }
+
+  void _updatePages() {
     _pages = [
-      HomeScreen(user: widget.user),
-      GiftScreen(user: widget.user),
-      AccountScreen(user: widget.user),
+      HomeScreen(user: widget.user, isActive: _currentIndex == 0),
+      GiftScreen(user: widget.user, isActive: _currentIndex == 1),
+      AccountScreen(user: widget.user, isActive: _currentIndex == 2),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: MainTabBottomNavbar(
+
+      bottomNavigationBar: BottomNavbar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
+            _updatePages(); // update isActive
           });
         },
       ),

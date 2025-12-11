@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../home/widgets/home_news_section.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../services/quote_gallery_service.dart';
+import '../../models/quote_gallery_model.dart';
 
 class QuotesGalleryPage extends StatefulWidget {
   const QuotesGalleryPage({super.key});
@@ -9,30 +12,75 @@ class QuotesGalleryPage extends StatefulWidget {
 }
 
 class _QuotesGalleryPageState extends State<QuotesGalleryPage> {
-  List<String> categories = [
-    "Love",
-    "Family",
-    "Dream",
-    "Hope",
-    "Grateful",
-    "Indonesia",
-    "Joy",
-  ];
+  Map<String, List<QuoteGallery>> groupedQuotes = {};
+  String selectedCategory = "";
+  bool showAll = false;
+  bool isLoading = true;
 
-  String selectedCategory = "Love";
+  @override
+  void initState() {
+    super.initState();
+    _loadQuotes();
+  }
 
-  List<String> quoteImages = [
-    "https://merryriana.com/server_api/asset/quotes/1.jpg",
-    "https://merryriana.com/server_api/asset/quotes/2.jpg",
-    "https://merryriana.com/server_api/asset/quotes/3.jpg",
-    "https://merryriana.com/server_api/asset/quotes/4.jpg",
-    "https://merryriana.com/server_api/asset/quotes/1.jpg",
-    "https://merryriana.com/server_api/asset/quotes/2.jpg",
-  ];
+  Future<void> _loadQuotes() async {
+    groupedQuotes = await QuoteGalleryService.fetchGallery();
+    setState(() {
+      selectedCategory = groupedQuotes.keys.first;
+      isLoading = false;
+    });
+  }
+
+  void _showQuotePopup(String imageUrl) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.85),
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.zero,
+          child: Stack(
+            children: [
+              // ==== IMAGE PREVIEW ====
+              Center(child: InteractiveViewer(child: Image.network(imageUrl))),
+
+              // ==== CLOSE BUTTON ====
+              Positioned(
+                top: 40,
+                left: 20,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+
+              // ==== SHARE BUTTON ====
+              Positioned(
+                top: 40,
+                right: 20,
+                child: IconButton(
+                  icon: const Icon(Icons.share, color: Colors.white, size: 28),
+                  onPressed: () {
+                    Share.share(imageUrl);
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final displayQuotes = quoteImages.take(4).toList();
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final quotes = groupedQuotes[selectedCategory] ?? [];
+    final displayQuotes = showAll ? quotes : quotes.take(4).toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -60,19 +108,23 @@ class _QuotesGalleryPageState extends State<QuotesGalleryPage> {
           children: [
             const SizedBox(height: 12),
 
-            // ================= Categories =================
+            // ================= CATEGORIES =================
             SizedBox(
               height: 40,
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemCount: categories.length,
+                itemCount: groupedQuotes.keys.length,
                 itemBuilder: (context, i) {
-                  final c = categories[i];
+                  final c = groupedQuotes.keys.elementAt(i);
+
                   return GestureDetector(
                     onTap: () {
-                      setState(() => selectedCategory = c);
+                      setState(() {
+                        selectedCategory = c;
+                        showAll = false;
+                      });
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -103,7 +155,7 @@ class _QuotesGalleryPageState extends State<QuotesGalleryPage> {
 
             const SizedBox(height: 20),
 
-            // =================== QUOTES SECTION WRAPPER ====================
+            // ================= QUOTES LIST ================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -121,7 +173,7 @@ class _QuotesGalleryPageState extends State<QuotesGalleryPage> {
                 ),
                 child: Column(
                   children: [
-                    // GRID INSIDE WHITE CARD
+                    // ==== GRID ====
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -134,23 +186,24 @@ class _QuotesGalleryPageState extends State<QuotesGalleryPage> {
                             childAspectRatio: 1,
                           ),
                       itemBuilder: (context, index) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.10),
-                                blurRadius: 6,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              displayQuotes[index],
-                              fit: BoxFit.cover,
+                        final imageUrl = displayQuotes[index].images;
+
+                        return GestureDetector(
+                          onTap: () => _showQuotePopup(imageUrl),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.10),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.network(imageUrl, fit: BoxFit.cover),
                             ),
                           ),
                         );
@@ -159,38 +212,37 @@ class _QuotesGalleryPageState extends State<QuotesGalleryPage> {
 
                     const SizedBox(height: 10),
 
-                    // SHOW MORE inside the card
-                    SizedBox(
-                      width: 180,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD9D9D9),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    // ==== SHOW MORE ====
+                    if (quotes.length > 4)
+                      SizedBox(
+                        width: 180,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() => showAll = !showAll);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFD9D9D9),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: const Text(
-                          "Show More",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                          child: Text(
+                            showAll ? "Show Less" : "Show More",
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 10),
-
-            // ============= Home News Section (dipisah) =============
-            // const HomeNewsSection(),
             const SizedBox(height: 30),
           ],
         ),

@@ -2,7 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
 import '../../services/youtube_service.dart';
+import '../../models/youtube_video_model.dart';
 import '../../models/youtube_playlist_model.dart';
 import '../videos-detail/playlist_detail_page.dart';
 
@@ -29,22 +31,26 @@ class _VideosScreenState extends State<VideosScreen> {
   }
 
   // =====================================================
-  // FETCH SEMUA DATA (Playlists + Latest Video)
+  // FETCH SEMUA DATA (Latest Videos + Playlists)
   // =====================================================
   Future<void> fetchAll() async {
     try {
-      playlists = await YoutubeService.getPlaylists();
+      // -------------------------
+      // 1. Ambil video terbaru
+      // -------------------------
+      final latestVideos = await YoutubeService.getLatestVideos();
 
-      if (playlists.isNotEmpty) {
-        final firstPlaylistId = playlists[0].id;
+      if (latestVideos.isNotEmpty) {
+        final latest = latestVideos.last; // ambil video paling baru
 
-        final items = await YoutubeService.getPlaylistItems(firstPlaylistId);
-
-        if (items.isNotEmpty) {
-          latestVideoId = items[0].videoId;
-          latestVideoTitle = items[0].title;
-        }
+        latestVideoId = latest.videoId;
+        latestVideoTitle = latest.title;
       }
+
+      // -------------------------
+      // 2. Ambil playlist
+      // -------------------------
+      playlists = await YoutubeService.getPlaylists();
     } catch (e) {
       print("Error fetchAll: $e");
     }
@@ -59,6 +65,7 @@ class _VideosScreenState extends State<VideosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+
       appBar: AppBar(
         title: Text(
           "Videos",
@@ -73,6 +80,7 @@ class _VideosScreenState extends State<VideosScreen> {
         centerTitle: true,
         iconTheme: IconThemeData(color: Colors.black),
       ),
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +271,6 @@ class _VideoWebViewPageState extends State<VideoWebViewPage> {
   void initState() {
     super.initState();
 
-    // Inisialisasi WebViewController untuk Flutter 4.x
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadRequest(

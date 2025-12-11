@@ -320,94 +320,148 @@ class _BirdtestScreenState extends State<BirdtestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text("Bird Test", style: TextStyle(color: Colors.black)),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            BirdProgress(progress: progress),
-            const SizedBox(height: 10),
-            Text("$selectedCount / 80"),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                children: paginatedQuestions.map((q) {
-                  return QuestionCard(
-                    text: q['text'],
-                    selected: answers[q['id']] == 1,
-                    onTap: () => selectAnswer(q['id']),
-                  );
-                }).toList(),
-              ),
-            ),
-            NavigationButtons(
-              currentPage: currentPage,
-              isLastPage:
-                  (currentPage + 1) * questionsPerPage >= questions.length,
-              onBack: () {
-                setState(() {
-                  currentPage--;
-                });
-              },
-              onNext: () {
-                setState(() {
-                  currentPage++;
-                });
-              },
-              onSubmit: () async {
-                if (selectedCount < 24 || selectedCount > 36) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        selectedCount < 24
-                            ? "Minimal pilih 24 jawaban"
-                            : "Maksimal pilih 36 jawaban",
-                      ),
-                    ),
-                  );
-                  return;
-                }
-
-                final scores = calculateScore();
-
-                try {
-                  await _service.submitTest(
-                    nama: UserSession.name,
-                    email: UserSession.email,
-                    phone: UserSession.phone,
-                    scores: scores,
-                    answers: answers,
-                  );
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Berhasil submit birdtest")),
-                  );
-
-                  // Navigasi ke halaman hasil
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BirdtestResultScreen(),
-                    ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Gagal submit birdtest")),
-                  );
-                }
-              },
-            ),
-          ],
+    return Container(
+      // Background
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/imgblk.jpeg'),
+          fit: BoxFit.cover,
         ),
       ),
-      bottomNavigationBar: const BirdBottomNav(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          title: const Text("Bird Test", style: TextStyle(color: Colors.black)),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              BirdProgress(progress: progress),
+              const SizedBox(height: 10),
+              Text("$selectedCount / 80"),
+              const SizedBox(height: 16),
+
+              // ==========================
+              //        LIST SOAL
+              // ==========================
+              Expanded(
+                child: ListView(
+                  children: paginatedQuestions.map((q) {
+                    return QuestionCard(
+                      text: q['text'],
+                      selected: answers[q['id']] == 1,
+                      onTap: () => selectAnswer(q['id']),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // ==========================
+              //      WARNING TEXT
+              // ==========================
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.yellow.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.orange.shade700,
+                      size: 26,
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        // "Pilihan Anda harus diberikan ke paling sedikit 24 pernyataan dan paling banyak 36 pernyataan.",
+                        "Berikan paling sedikit 24 dan paling banyak 36 pernyataan",
+                        style: TextStyle(
+                          fontSize: 15,
+                          height: 1.3,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // ==========================
+              //    BUTTON NEXT / SUBMIT
+              // ==========================
+              NavigationButtons(
+                currentPage: currentPage,
+                isLastPage:
+                    (currentPage + 1) * questionsPerPage >= questions.length,
+                onBack: () {
+                  setState(() {
+                    currentPage--;
+                  });
+                },
+                onNext: () {
+                  setState(() {
+                    currentPage++;
+                  });
+                },
+                onSubmit: () async {
+                  if (selectedCount < 24 || selectedCount > 36) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          selectedCount < 24
+                              ? "Minimal pilih 24 jawaban"
+                              : "Maksimal pilih 36 jawaban",
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  final scores = calculateScore();
+
+                  try {
+                    await _service.submitTest(
+                      nama: UserSession.name,
+                      email: UserSession.email,
+                      phone: UserSession.phone,
+                      scores: scores,
+                      answers: answers,
+                    );
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Berhasil submit birdtest")),
+                    );
+
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BirdtestResultScreen(),
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Gagal submit birdtest")),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

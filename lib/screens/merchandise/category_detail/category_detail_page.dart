@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../models/merchandise_item.dart';
-import '../product_detail/product_detail_page.dart';
 
 class CategoryDetailPage extends StatefulWidget {
   final String title;
@@ -23,11 +23,16 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+
       appBar: AppBar(
         title: const Text("Search"),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
 
       body: SingleChildScrollView(
@@ -35,7 +40,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // SEARCH BAR
+            // ================= SEARCH BAR =================
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               height: 42,
@@ -43,8 +48,8 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                 color: Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Row(
-                children: const [
+              child: const Row(
+                children: [
                   Icon(Icons.search, color: Colors.grey),
                   SizedBox(width: 6),
                   Text("Search Product", style: TextStyle(color: Colors.grey)),
@@ -54,7 +59,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
             const SizedBox(height: 20),
 
-            // BANNER
+            // ================= BANNER =================
             Container(
               height: 160,
               decoration: BoxDecoration(
@@ -68,9 +73,9 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
-            // PAGE INDICATOR
+            // ================= PAGE INDICATOR =================
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (i) {
@@ -87,9 +92,9 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
               }),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-            // CATEGORY TITLE
+            // ================= CATEGORY TITLE =================
             Text(
               widget.title,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -97,7 +102,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
             const SizedBox(height: 20),
 
-            // PRODUCT GRID
+            // ================= PRODUCT GRID =================
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -106,23 +111,34 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 20,
                 mainAxisSpacing: 20,
-                childAspectRatio: 0.60,
+                childAspectRatio: 0.55, // memastikan tidak overflow
               ),
               itemBuilder: (context, index) {
-                final p = widget.products[index];
+                final MerchandiseItem p = widget.products[index];
 
                 return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ProductDetailPage(id: p.id),
-                      ),
-                    );
+                  onTap: () async {
+                    final Uri url = Uri.parse(p.redirectLink);
+
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Unable to open product link"),
+                        ),
+                      );
+                    }
                   },
+
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // PRODUCT IMAGE
                       AspectRatio(
                         aspectRatio: 3 / 4,
                         child: ClipRRect(
@@ -130,7 +146,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                           child: Image.network(
                             p.gambar,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, e, s) => Container(
+                            errorBuilder: (_, __, ___) => Container(
                               color: Colors.grey[200],
                               child: const Icon(Icons.broken_image),
                             ),
@@ -140,27 +156,48 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
                       const SizedBox(height: 8),
 
+                      // PRODUCT TITLE
                       Text(
                         p.judul,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
 
                       const SizedBox(height: 4),
 
-                      // const Text(
-                      //   "\$16,00   \$20,00",
-                      //   style: TextStyle(
-                      //     fontWeight: FontWeight.bold,
-                      //     color: Colors.black,
-                      //   ),
-                      // ),
+                      // HARGA CORET (jika > 0)
+                      if (p.hargaCoret > 0)
+                        Text(
+                          "Rp ${p.hargaCoret}",
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 11,
+                            decoration: TextDecoration.lineThrough,
+                            decorationThickness: 2,
+                          ),
+                        ),
+
+                      // HARGA NORMAL (jika > 0)
+                      if (p.harga > 0)
+                        Text(
+                          "Rp ${p.harga}",
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
                     ],
                   ),
                 );
               },
             ),
+
+            const SizedBox(height: 40),
           ],
         ),
       ),

@@ -9,6 +9,8 @@ class MerchandiseItem {
   final String redirectLink;
   final String linkNoPayment;
   final int ctaBtn;
+  final int harga;
+  final int hargaCoret;
   final int status;
   final DateTime createdDate;
 
@@ -23,6 +25,8 @@ class MerchandiseItem {
     required this.redirectLink,
     required this.linkNoPayment,
     required this.ctaBtn,
+    required this.harga,
+    required this.hargaCoret,
     required this.status,
     required this.createdDate,
   });
@@ -39,6 +43,8 @@ class MerchandiseItem {
       redirectLink: json['redirect_link'] ?? '',
       linkNoPayment: json['link_no_payment'] ?? '',
       ctaBtn: json['cta_btn'] ?? 0,
+      harga: json['harga'] ?? 0,
+      hargaCoret: json['harga_coret'] ?? 0,
       status: json['status'] ?? 0,
       createdDate: DateTime.parse(json['created_date']),
     );

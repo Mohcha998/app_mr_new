@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
-// import '../home/widgets/bottom_navbar.dart';
 import '../../session/user_session.dart';
 import '../../models/user_model.dart';
 
 class AccountScreen extends StatelessWidget {
   final User user;
+  final bool isActive; // <-- DITAMBAHKAN
 
-  const AccountScreen({super.key, required this.user});
+  const AccountScreen({
+    super.key,
+    required this.user,
+    required this.isActive, // <-- DITAMBAHKAN
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Ambil data dari session
+    // Session data
     final String name = UserSession.name;
     final String email = UserSession.email;
     final String phone = "+62${UserSession.phone}";
 
     return Scaffold(
-      // bottomNavigationBar: BottomNavbar(
-      //   currentIndex: 2,
-      //   user: user, // <-- FIX: wajib kirim user
-      // ),
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: const Text(
@@ -60,7 +60,6 @@ class AccountScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
 
-                // USER DATA FROM SESSION
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

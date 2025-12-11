@@ -43,8 +43,8 @@ class NavigationButtons extends StatelessWidget {
             icon: Icon(isLastPage ? Icons.check : Icons.arrow_forward),
             label: Text(isLastPage ? "Kirim" : "Berikutnya"),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.black,
-              backgroundColor: Colors.white,
+              foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+              backgroundColor: const Color.fromARGB(255, 223, 32, 32),
               side: BorderSide(color: Colors.grey.shade400),
               shape: const StadiumBorder(),
             ),

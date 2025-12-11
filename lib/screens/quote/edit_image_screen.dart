@@ -30,42 +30,37 @@ class _EditImagePageState extends State<EditImagePage> {
 
   final ImagePicker _picker = ImagePicker();
 
-  Quote? quote; // ✅ Model Quote dari API atau JSON
+  Quote? quote;
 
+  // =============================
+  // GET ARGUMENT
+  // =============================
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Ambil argumen dari Navigator.pushNamed()
     final args = ModalRoute.of(context)?.settings.arguments;
 
     if (args != null && quote == null) {
-      // Jika args adalah Map (misal dikirim dari Navigator)
       if (args is Map<String, dynamic>) {
         final quoteData = args['quote'];
 
-        // ✅ Cek apakah sudah dalam bentuk Quote
         if (quoteData is Quote) {
           quote = quoteData;
-        }
-        // ✅ Jika masih Map, ubah jadi Quote
-        else if (quoteData is Map<String, dynamic>) {
+        } else if (quoteData is Map<String, dynamic>) {
           quote = Quote.fromJson(quoteData);
-        }
-        // ✅ Jika bukan keduanya, tampilkan warning di log
-        else {
+        } else {
           debugPrint("⚠️ Invalid quote data type: ${quoteData.runtimeType}");
         }
-      }
-      // Jika args dikirim langsung sebagai Quote (bukan Map)
-      else if (args is Quote) {
+      } else if (args is Quote) {
         quote = args;
-      } else {
-        debugPrint("⚠️ Unexpected args type: ${args.runtimeType}");
       }
     }
   }
 
+  // =============================
+  // PICK IMAGE FROM GALLERY
+  // =============================
   Future<void> _pickFromGallery() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -77,6 +72,9 @@ class _EditImagePageState extends State<EditImagePage> {
     }
   }
 
+  // =============================
+  // GRID VIEW
+  // =============================
   Widget _buildGridView() {
     return GridView.count(
       crossAxisCount: 3,
@@ -84,7 +82,7 @@ class _EditImagePageState extends State<EditImagePage> {
       mainAxisSpacing: 4,
       padding: const EdgeInsets.all(8),
       children: [
-        // Pilih dari gallery
+        // Pick from gallery
         GestureDetector(
           onTap: _pickFromGallery,
           child: Container(
@@ -99,7 +97,7 @@ class _EditImagePageState extends State<EditImagePage> {
           ),
         ),
 
-        // Pilih dari aset lokal
+        // Assets image
         for (final asset in _assetImages)
           GestureDetector(
             onTap: () {
@@ -118,17 +116,18 @@ class _EditImagePageState extends State<EditImagePage> {
     );
   }
 
+  // =============================
+  // PREVIEW IMAGE
+  // =============================
   Widget _buildPreview() {
     final imageWidget = _pickedImage != null
         ? Image.file(_pickedImage!, fit: BoxFit.cover)
-        : (_selectedAsset != null
-              ? Image.asset(_selectedAsset!, fit: BoxFit.cover)
-              : const SizedBox());
+        : Image.asset(_selectedAsset!, fit: BoxFit.cover);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // ✅ Preview gambar
+        // Image Preview
         Container(
           margin: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -145,20 +144,22 @@ class _EditImagePageState extends State<EditImagePage> {
           child: AspectRatio(aspectRatio: 3 / 4, child: imageWidget),
         ),
 
-        // ✅ Tombol Choose Image
+        // ✅ Choose Image → Editor
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             final imagePath = _pickedImage?.path ?? _selectedAsset;
 
             if (imagePath != null && quote != null) {
-              Navigator.pushReplacementNamed(
+              await Navigator.pushNamed(
                 context,
                 '/quote_editor_page',
-                arguments: {
-                  'imagePath': imagePath,
-                  'quote': quote!.text, // ✅ Kirim objek Quote
-                },
+                arguments: {'imagePath': imagePath, 'quote': quote!.text},
               );
+
+              // ✅ Saat kembali dari editor
+              setState(() {
+                _isPreview = true;
+              });
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Please select an image first.")),
@@ -175,9 +176,10 @@ class _EditImagePageState extends State<EditImagePage> {
           ),
           child: const Text("Choose Image", style: TextStyle(fontSize: 16)),
         ),
+
         const SizedBox(height: 16),
 
-        // ✅ Tombol Cancel
+        // ✅ Cancel → back to grid
         TextButton(
           onPressed: () {
             setState(() {
@@ -195,6 +197,9 @@ class _EditImagePageState extends State<EditImagePage> {
     );
   }
 
+  // =============================
+  // BUILD
+  // =============================
   @override
   Widget build(BuildContext context) {
     final hasQuote = quote != null;
@@ -213,7 +218,7 @@ class _EditImagePageState extends State<EditImagePage> {
       ),
       body: hasQuote
           ? AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 250),
               child: _isPreview ? _buildPreview() : _buildGridView(),
             )
           : const Center(

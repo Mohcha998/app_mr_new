@@ -27,8 +27,9 @@ import '../quote/quote_preview_page.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
+  final bool isActive;
 
-  const HomeScreen({super.key, required this.user});
+  const HomeScreen({super.key, required this.user, required this.isActive});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -322,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         }),
 
-                        _menuItem("assets/icon/info.png", "Info", () {}),
+                        _menuItem("assets/icon/event.png", "Event", () {}),
                       ],
                     ),
                   ),
