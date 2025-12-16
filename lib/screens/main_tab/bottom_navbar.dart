@@ -47,13 +47,17 @@ class BottomNavbar extends StatelessWidget {
                         Icon(
                           Icons.home,
                           size: 30,
-                          color: currentIndex == 0 ? Colors.red : Colors.grey,
+                          color: currentIndex == 0
+                              ? Color.fromARGB(255, 186, 28, 17)
+                              : Colors.grey,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           "Home",
                           style: TextStyle(
-                            color: currentIndex == 0 ? Colors.red : Colors.grey,
+                            color: currentIndex == 0
+                                ? Color.fromARGB(255, 186, 28, 17)
+                                : Colors.grey,
                           ),
                         ),
                       ],
@@ -70,13 +74,17 @@ class BottomNavbar extends StatelessWidget {
                         Icon(
                           Icons.person,
                           size: 30,
-                          color: currentIndex == 2 ? Colors.red : Colors.grey,
+                          color: currentIndex == 2
+                              ? Color.fromARGB(255, 186, 28, 17)
+                              : Colors.grey,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           "Account",
                           style: TextStyle(
-                            color: currentIndex == 2 ? Colors.red : Colors.grey,
+                            color: currentIndex == 2
+                                ? Color.fromARGB(255, 186, 28, 17)
+                                : Colors.grey,
                           ),
                         ),
                       ],
@@ -96,11 +104,11 @@ class BottomNavbar extends StatelessWidget {
                 width: 68,
                 height: 68,
                 decoration: BoxDecoration(
-                  color: Colors.red,
+                  color: Color.fromARGB(255, 186, 28, 17),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.red.withOpacity(0.35),
+                      color: Color.fromARGB(255, 186, 28, 17).withOpacity(0.35),
                       blurRadius: 18,
                       offset: const Offset(0, 6),
                     ),

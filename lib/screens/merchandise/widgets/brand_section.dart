@@ -59,7 +59,7 @@ class BrandSection extends StatelessWidget {
   }
 
   // =============================
-  // LOADING DIALOG
+  // LOADING POPUP
   // =============================
   void _showLoading(BuildContext context) {
     showDialog(
@@ -99,6 +99,7 @@ class BrandSection extends StatelessWidget {
             "Brands",
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
+
           const SizedBox(height: 14),
 
           Row(
@@ -111,7 +112,9 @@ class BrandSection extends StatelessWidget {
                 "assets/images/manzone.png",
                 onTap: () => _openManzone(context),
               ),
-              const BrandItem.comingSoon(),
+
+              // 🆕 Coming Soon with MRRY Logo
+              const BrandItem.comingSoonWithLogo("assets/images/mrry.png"),
             ],
           ),
         ],

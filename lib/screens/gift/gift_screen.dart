@@ -5,7 +5,7 @@ import '../../models/user_model.dart';
 
 class GiftScreen extends StatefulWidget {
   final User user;
-  final bool isActive; // <-- penting
+  final bool isActive;
 
   const GiftScreen({super.key, required this.user, required this.isActive});
 
@@ -29,20 +29,28 @@ class _GiftScreenState extends State<GiftScreen> with WidgetsBindingObserver {
     _videoController.initialize().then((_) {
       _chewieController = ChewieController(
         videoPlayerController: _videoController,
-        autoPlay: false,
+        autoPlay: false, // <-- autoplay dimatikan
         looping: false,
       );
+
+      // Jika halaman aktif saat pertama dibuka → langsung play
+      if (widget.isActive) {
+        _videoController.play();
+      }
+
       setState(() {});
     });
   }
 
-  // stop saat tab diganti (isActive berubah)
+  // Stop / play berdasarkan tab aktif
   @override
   void didUpdateWidget(covariant GiftScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (!widget.isActive) {
-      _videoController.pause();
+    if (widget.isActive && !_videoController.value.isPlaying) {
+      _videoController.play(); // <-- play saat tab aktif
+    } else if (!widget.isActive && _videoController.value.isPlaying) {
+      _videoController.pause(); // <-- pause saat tab tidak aktif
     }
   }
 
@@ -68,8 +76,6 @@ class _GiftScreenState extends State<GiftScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Boost"),
@@ -78,15 +84,13 @@ class _GiftScreenState extends State<GiftScreen> with WidgetsBindingObserver {
       ),
       backgroundColor: Colors.white,
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch, // <-- bikin full width
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 10),
 
           if (_chewieController != null && _videoController.value.isInitialized)
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-              ), // <-- kiri kanan rata
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: AspectRatio(
                 aspectRatio: _videoController.value.aspectRatio,
                 child: Chewie(controller: _chewieController!),

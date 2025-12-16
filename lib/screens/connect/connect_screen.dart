@@ -332,7 +332,17 @@ class ReadMoreLink extends StatelessWidget {
     return Align(
       alignment: Alignment.centerRight,
       child: InkWell(
-        onTap: () {},
+        onTap: () async {
+          final Uri url = Uri.parse("https://merryrianaeducation.com");
+
+          if (await canLaunchUrl(url)) {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Unable to open link")),
+            );
+          }
+        },
         child: const Text(
           "Read More >>",
           style: TextStyle(

@@ -1,5 +1,8 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 import '../../../models/merchandise_item.dart';
 
 class CategoryDetailPage extends StatefulWidget {
@@ -18,6 +21,11 @@ class CategoryDetailPage extends StatefulWidget {
 
 class _CategoryDetailPageState extends State<CategoryDetailPage> {
   int page = 0;
+
+  String formatRupiah(num value) {
+    final format = NumberFormat.decimalPattern('id_ID');
+    return format.format(value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +48,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ================= SEARCH BAR =================
+            // SEARCH BAR
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               height: 42,
@@ -59,7 +67,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
             const SizedBox(height: 20),
 
-            // ================= BANNER =================
+            // BANNER
             Container(
               height: 160,
               decoration: BoxDecoration(
@@ -75,7 +83,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
             const SizedBox(height: 12),
 
-            // ================= PAGE INDICATOR =================
+            // PAGE INDICATOR
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (i) {
@@ -94,7 +102,6 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
             const SizedBox(height: 24),
 
-            // ================= CATEGORY TITLE =================
             Text(
               widget.title,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -102,19 +109,19 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
             const SizedBox(height: 20),
 
-            // ================= PRODUCT GRID =================
+            // PRODUCT GRID — FIXED
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: widget.products.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 20,
+                crossAxisSpacing: 18,
                 mainAxisSpacing: 20,
-                childAspectRatio: 0.55, // memastikan tidak overflow
+                childAspectRatio: 0.70, // FIX OVERFLOW
               ),
               itemBuilder: (context, index) {
-                final MerchandiseItem p = widget.products[index];
+                final p = widget.products[index];
 
                 return GestureDetector(
                   onTap: () async {
@@ -135,63 +142,90 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                     }
                   },
 
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // PRODUCT IMAGE
-                      AspectRatio(
-                        aspectRatio: 3 / 4,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            p.gambar,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: Colors.grey[200],
-                              child: const Icon(Icons.broken_image),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.06),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // FIXED HEIGHT IMAGE — NO MORE OVERFLOW
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            height: 135,
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                            child: Image.network(
+                              p.gambar,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  Icon(Icons.broken_image),
                             ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 8),
+                        const SizedBox(height: 10),
 
-                      // PRODUCT TITLE
-                      Text(
-                        p.judul,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
+                        // CONTENT BELOW (EXPANDED)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                p.judul,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
 
-                      const SizedBox(height: 4),
+                              const SizedBox(height: 6),
 
-                      // HARGA CORET (jika > 0)
-                      if (p.hargaCoret > 0)
-                        Text(
-                          "Rp ${p.hargaCoret}",
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 11,
-                            decoration: TextDecoration.lineThrough,
-                            decorationThickness: 2,
+                              if (p.hargaCoret > 0)
+                                Text(
+                                  "Rp ${formatRupiah(p.hargaCoret)}",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 11,
+                                    decoration: TextDecoration.lineThrough,
+                                    decorationThickness: 2,
+                                  ),
+                                ),
+
+                              const SizedBox(height: 2),
+
+                              if (p.harga > 0)
+                                Text(
+                                  "Rp ${formatRupiah(p.harga)}",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-
-                      // HARGA NORMAL (jika > 0)
-                      if (p.harga > 0)
-                        Text(
-                          "Rp ${p.harga}",
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },

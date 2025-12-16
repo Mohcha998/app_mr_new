@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class BrandItem extends StatelessWidget {
   final String? image;
+  final String? comingSoonLogo;
   final VoidCallback? onTap;
   final bool isComingSoon;
 
@@ -9,13 +10,24 @@ class BrandItem extends StatelessWidget {
     this.image,
     this.onTap,
     this.isComingSoon = false,
+    this.comingSoonLogo,
     super.key,
   });
 
+  /// Normal brand item
   const BrandItem.image(this.image, {required this.onTap, super.key})
-    : isComingSoon = false;
+    : isComingSoon = false,
+      comingSoonLogo = null;
 
+  /// Coming Soon without logo
   const BrandItem.comingSoon({super.key})
+    : image = null,
+      onTap = null,
+      isComingSoon = true,
+      comingSoonLogo = null;
+
+  /// Coming Soon WITH logo behind
+  const BrandItem.comingSoonWithLogo(this.comingSoonLogo, {super.key})
     : image = null,
       onTap = null,
       isComingSoon = true;
@@ -39,18 +51,34 @@ class BrandItem extends StatelessWidget {
             ),
           ],
         ),
-        alignment: Alignment.center,
         child: isComingSoon
-            ? const Text(
-                "COMING\nSOON",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  height: 1.1,
-                  letterSpacing: 0.8,
-                ),
+            ? Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (comingSoonLogo != null)
+                    Opacity(
+                      opacity: 0.4,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Image.asset(
+                          comingSoonLogo!,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+
+                  const Text(
+                    "COMING\nSOON",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      height: 1.1,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
               )
             : Padding(
                 padding: const EdgeInsets.all(10),

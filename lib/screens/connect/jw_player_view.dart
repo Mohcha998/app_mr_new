@@ -12,6 +12,7 @@ class JWPlayerView extends StatefulWidget {
 
 class _JWPlayerViewState extends State<JWPlayerView> {
   late final WebViewController _controller;
+  bool showPlayer = false; // <<< UNTUK MENGATUR THUMBNAIL
 
   @override
   void initState() {
@@ -33,7 +34,7 @@ class _JWPlayerViewState extends State<JWPlayerView> {
             iframe {
               border: none;
               width: 100vw;
-              height: 56.25vw; /* 16:9 ratio */
+              height: 56.25vw; /* rasio 16:9 */
               max-height: 100vh;
             }
           </style>
@@ -57,7 +58,52 @@ class _JWPlayerViewState extends State<JWPlayerView> {
   Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: 16 / 9,
-      child: WebViewWidget(controller: _controller),
+
+      child: Stack(
+        children: [
+          // ============================
+          // 1) WEBVIEW (VIDEO PLAYER)
+          // ============================
+          if (showPlayer) WebViewWidget(controller: _controller),
+
+          // ============================
+          // 2) THUMBNAIL (DEFAULT TAMPIL)
+          // ============================
+          if (!showPlayer)
+            GestureDetector(
+              onTap: () {
+                setState(() => showPlayer = true);
+              },
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // GAMBAR THUMBNAIL
+                  Image.asset("assets/images/thmbnl.webp", fit: BoxFit.cover),
+
+                  // GRADIENT / OVERLAY (opsional)
+                  Container(color: Colors.black.withOpacity(0.25)),
+
+                  // TOMBOL PLAY
+                  Center(
+                    child: Container(
+                      width: 65,
+                      height: 65,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.85),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.play_arrow,
+                        size: 42,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

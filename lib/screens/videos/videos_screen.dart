@@ -1,10 +1,9 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/youtube_service.dart';
-import '../../models/youtube_video_model.dart';
 import '../../models/youtube_playlist_model.dart';
 import '../videos-detail/playlist_detail_page.dart';
 
@@ -24,33 +23,56 @@ class _VideosScreenState extends State<VideosScreen> {
 
   List<YoutubePlaylist> playlists = [];
 
+  // ===========================================
+  // CUSTOM URUTAN PLAYLIST
+  // ===========================================
+  final List<String> priorityOrder = [
+    "POPULAR VIDEOS",
+    "ABOUT MERRY RIANA",
+    "THE MENTOR",
+    "FRIENDS OF MERRY RIANA",
+    "SPOKEN WORD",
+    "MOTIVASI MERRY",
+    "MERRY STORY",
+    "#JADIARTINYA",
+    "VLOG MISS MERRY",
+    "MERRY RIANA GROUP",
+  ];
+
   @override
   void initState() {
     super.initState();
     fetchAll();
   }
 
-  // =====================================================
-  // FETCH SEMUA DATA (Latest Videos + Playlists)
-  // =====================================================
+  // ===========================================
+  // FETCH SEMUA DATA
+  // ===========================================
   Future<void> fetchAll() async {
     try {
-      // -------------------------
-      // 1. Ambil video terbaru
-      // -------------------------
+      // Fetch latest video
       final latestVideos = await YoutubeService.getLatestVideos();
 
       if (latestVideos.isNotEmpty) {
-        final latest = latestVideos.last; // ambil video paling baru
+        final latest = latestVideos.last;
 
         latestVideoId = latest.videoId;
         latestVideoTitle = latest.title;
       }
 
-      // -------------------------
-      // 2. Ambil playlist
-      // -------------------------
+      // Fetch playlists
       playlists = await YoutubeService.getPlaylists();
+
+      // Sorting playlist custom
+      playlists.sort((a, b) {
+        int indexA = priorityOrder.indexOf(a.title.toUpperCase());
+        int indexB = priorityOrder.indexOf(b.title.toUpperCase());
+
+        if (indexA == -1) indexA = 999;
+        if (indexB == -1) indexB = 999;
+
+        return indexA.compareTo(indexB);
+      });
     } catch (e) {
       print("Error fetchAll: $e");
     }
@@ -59,6 +81,22 @@ class _VideosScreenState extends State<VideosScreen> {
       loadingTop = false;
       loadingList = false;
     });
+  }
+
+  // ===========================================
+  // OPEN YOUTUBE APP / BROWSER
+  // ===========================================
+  Future<void> openYoutube(String videoId) async {
+    final url = Uri.parse("https://www.youtube.com/watch?v=$videoId");
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication, // <-- langsung buka YouTube
+      );
+    } else {
+      print("Tidak bisa membuka YouTube");
+    }
   }
 
   @override
@@ -99,17 +137,7 @@ class _VideosScreenState extends State<VideosScreen> {
                       ),
                     )
                   : InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => VideoWebViewPage(
-                              videoId: latestVideoId!,
-                              title: latestVideoTitle,
-                            ),
-                          ),
-                        );
-                      },
+                      onTap: () => openYoutube(latestVideoId!),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -243,46 +271,6 @@ class _VideosScreenState extends State<VideosScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-// =====================================================
-// VIDEO WEBVIEW PAGE
-// =====================================================
-class VideoWebViewPage extends StatefulWidget {
-  final String videoId;
-  final String title;
-
-  const VideoWebViewPage({
-    super.key,
-    required this.videoId,
-    required this.title,
-  });
-
-  @override
-  State<VideoWebViewPage> createState() => _VideoWebViewPageState();
-}
-
-class _VideoWebViewPageState extends State<VideoWebViewPage> {
-  late final WebViewController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(
-        Uri.parse("https://www.youtube.com/embed/${widget.videoId}?autoplay=1"),
-      );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.title), backgroundColor: Colors.red),
-      body: WebViewWidget(controller: _controller),
     );
   }
 }
