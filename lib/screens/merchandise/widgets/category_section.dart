@@ -6,7 +6,9 @@ import '../category_detail/category_detail_page.dart';
 import 'category_group.dart';
 
 class CategorySection extends StatefulWidget {
-  const CategorySection({super.key});
+  final String searchKeyword;
+
+  const CategorySection({super.key, required this.searchKeyword});
 
   @override
   State<CategorySection> createState() => _CategorySectionState();
@@ -44,6 +46,21 @@ class _CategorySectionState extends State<CategorySection> {
     }
   }
 
+  /// ===============================
+  /// FILTER PRODUCT BY SEARCH
+  /// ===============================
+  List<MerchandiseItem> _filter(List<MerchandiseItem> items) {
+    if (widget.searchKeyword.isEmpty) return items;
+
+    final keyword = widget.searchKeyword.toLowerCase();
+
+    return items
+        .where(
+          (MerchandiseItem item) => item.judul.toLowerCase().contains(keyword),
+        )
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final double itemWidth = (MediaQuery.of(context).size.width - 60) / 2;
@@ -56,6 +73,18 @@ class _CategorySectionState extends State<CategorySection> {
         ),
       );
     }
+
+    final List<MerchandiseItem> filteredBooks = books == null
+        ? []
+        : _filter(books!.merchandise);
+
+    final List<MerchandiseItem> filteredFashion = fashion == null
+        ? []
+        : _filter(fashion!.merchandise);
+
+    final List<MerchandiseItem> filteredOthers = others == null
+        ? []
+        : _filter(others!.merchandise);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -73,11 +102,14 @@ class _CategorySectionState extends State<CategorySection> {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
 
-              // ========== SEE ALL BUTTON ==========
               GestureDetector(
                 onTap: () async {
                   final List<MerchandiseItem> allProducts =
                       await merchandiseService.getAllFlat();
+
+                  final List<MerchandiseItem> filteredAll = _filter(
+                    allProducts,
+                  );
 
                   if (!mounted) return;
 
@@ -85,8 +117,10 @@ class _CategorySectionState extends State<CategorySection> {
                     context,
                     MaterialPageRoute(
                       builder: (_) => CategoryDetailPage(
-                        title: "All Merchandise",
-                        products: allProducts,
+                        title: widget.searchKeyword.isEmpty
+                            ? "All Merchandise"
+                            : "Search Result",
+                        products: filteredAll,
                       ),
                     ),
                   );
@@ -111,21 +145,17 @@ class _CategorySectionState extends State<CategorySection> {
           const SizedBox(height: 20),
 
           // ==============================
-          // CATEGORY ITEMS
+          // CATEGORY GROUPS (FILTERED)
           // ==============================
           Wrap(
             spacing: 20,
             runSpacing: 20,
             children: [
-              // BOOKS
-              if (books != null)
+              if (filteredBooks.isNotEmpty)
                 CategoryGroup(
                   title: books!.kategoriNama,
-                  count: books!.merchandise.length,
-                  images: books!.merchandise
-                      .map((e) => e.gambar)
-                      .take(4)
-                      .toList(),
+                  count: filteredBooks.length,
+                  images: filteredBooks.map((e) => e.gambar).take(4).toList(),
                   width: itemWidth,
                   onTap: () {
                     Navigator.push(
@@ -133,22 +163,18 @@ class _CategorySectionState extends State<CategorySection> {
                       MaterialPageRoute(
                         builder: (_) => CategoryDetailPage(
                           title: books!.kategoriNama,
-                          products: books!.merchandise,
+                          products: filteredBooks,
                         ),
                       ),
                     );
                   },
                 ),
 
-              // FASHION
-              if (fashion != null)
+              if (filteredFashion.isNotEmpty)
                 CategoryGroup(
                   title: fashion!.kategoriNama,
-                  count: fashion!.merchandise.length,
-                  images: fashion!.merchandise
-                      .map((e) => e.gambar)
-                      .take(4)
-                      .toList(),
+                  count: filteredFashion.length,
+                  images: filteredFashion.map((e) => e.gambar).take(4).toList(),
                   width: itemWidth,
                   onTap: () {
                     Navigator.push(
@@ -156,22 +182,18 @@ class _CategorySectionState extends State<CategorySection> {
                       MaterialPageRoute(
                         builder: (_) => CategoryDetailPage(
                           title: fashion!.kategoriNama,
-                          products: fashion!.merchandise,
+                          products: filteredFashion,
                         ),
                       ),
                     );
                   },
                 ),
 
-              // OTHERS
-              if (others != null)
+              if (filteredOthers.isNotEmpty)
                 CategoryGroup(
                   title: others!.kategoriNama,
-                  count: others!.merchandise.length,
-                  images: others!.merchandise
-                      .map((e) => e.gambar)
-                      .take(4)
-                      .toList(),
+                  count: filteredOthers.length,
+                  images: filteredOthers.map((e) => e.gambar).take(4).toList(),
                   width: itemWidth,
                   onTap: () {
                     Navigator.push(
@@ -179,7 +201,7 @@ class _CategorySectionState extends State<CategorySection> {
                       MaterialPageRoute(
                         builder: (_) => CategoryDetailPage(
                           title: others!.kategoriNama,
-                          products: others!.merchandise,
+                          products: filteredOthers,
                         ),
                       ),
                     );
@@ -187,6 +209,19 @@ class _CategorySectionState extends State<CategorySection> {
                 ),
             ],
           ),
+
+          if (filteredBooks.isEmpty &&
+              filteredFashion.isEmpty &&
+              filteredOthers.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: Center(
+                child: Text(
+                  "Produk tidak ditemukan",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ),
         ],
       ),
     );

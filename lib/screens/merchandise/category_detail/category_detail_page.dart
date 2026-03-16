@@ -20,11 +20,28 @@ class CategoryDetailPage extends StatefulWidget {
 }
 
 class _CategoryDetailPageState extends State<CategoryDetailPage> {
-  int page = 0;
+  late List<MerchandiseItem> filteredProducts;
+  final TextEditingController _searchController = TextEditingController();
 
   String formatRupiah(num value) {
     final format = NumberFormat.decimalPattern('id_ID');
     return format.format(value);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    filteredProducts = widget.products;
+  }
+
+  void _onSearch(String keyword) {
+    setState(() {
+      filteredProducts = widget.products.where((p) {
+        final title = p.judul.toLowerCase();
+        final query = keyword.toLowerCase();
+        return title.contains(query);
+      }).toList();
+    });
   }
 
   @override
@@ -43,196 +60,166 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
         ),
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // SEARCH BAR
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              height: 42,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.search, color: Colors.grey),
-                  SizedBox(width: 6),
-                  Text("Search Product", style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            ),
+      body: MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
-
-            // BANNER
-            Container(
-              height: 160,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    "https://merryriana.com/server_api/asset/general/banner2.jpeg",
+              /// ================= SEARCH FIELD =================
+              TextField(
+                controller: _searchController,
+                onChanged: _onSearch,
+                decoration: InputDecoration(
+                  hintText: "Cari produk...",
+                  prefixIcon: Icon(Icons.search),
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
-                  fit: BoxFit.cover,
                 ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 20),
 
-            // PAGE INDICATOR
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (i) {
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: i == page ? 22 : 12,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: i == page ? Colors.red : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                );
-              }),
-            ),
-
-            const SizedBox(height: 24),
-
-            Text(
-              widget.title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-
-            // PRODUCT GRID — FIXED
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: widget.products.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 18,
-                mainAxisSpacing: 20,
-                childAspectRatio: 0.70, // FIX OVERFLOW
+              Text(
+                widget.title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              itemBuilder: (context, index) {
-                final p = widget.products[index];
 
-                return GestureDetector(
-                  onTap: () async {
-                    final Uri url = Uri.parse(p.redirectLink);
+              const SizedBox(height: 20),
 
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(
-                        url,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    } else {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Unable to open product link"),
-                        ),
-                      );
-                    }
-                  },
+              /// ================= PRODUCT GRID =================
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filteredProducts.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 18,
+                  mainAxisSpacing: 20,
+                  mainAxisExtent: 310,
+                ),
+                itemBuilder: (context, index) {
+                  final p = filteredProducts[index];
 
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
+                  return GestureDetector(
+                    onTap: () async {
+                      final url = Uri.parse(p.redirectLink);
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
+                      }
+                    },
 
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // FIXED HEIGHT IMAGE — NO MORE OVERFLOW
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            height: 135,
-                            width: double.infinity,
-                            color: Colors.grey[200],
-                            child: Image.network(
-                              p.gambar,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  Icon(Icons.broken_image),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// IMAGE
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              height: 165,
+                              width: double.infinity,
+                              child: Image.network(
+                                p.gambar,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    Icon(Icons.broken_image),
+                              ),
                             ),
                           ),
-                        ),
 
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 10),
 
-                        // CONTENT BELOW (EXPANDED)
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                p.judul,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-
-                              const SizedBox(height: 6),
-
-                              if (p.hargaCoret > 0)
+                          /// TEXT + PRICE
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
                                 Text(
-                                  "Rp ${formatRupiah(p.hargaCoret)}",
-                                  maxLines: 1,
+                                  p.judul,
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 11,
-                                    decoration: TextDecoration.lineThrough,
-                                    decorationThickness: 2,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-
-                              const SizedBox(height: 2),
-
-                              if (p.harga > 0)
-                                Text(
-                                  "Rp ${formatRupiah(p.harga)}",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (p.hargaCoret > 0)
+                                      Text(
+                                        "Rp ${formatRupiah(p.hargaCoret)}",
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 11,
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 2),
+                                    if (p.harga > 0)
+                                      Text(
+                                        "Rp ${formatRupiah(p.harga)}",
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              if (filteredProducts.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 40),
+                  child: Center(
+                    child: Text(
+                      "Produk tidak ditemukan",
+                      style: TextStyle(color: Colors.grey),
                     ),
                   ),
-                );
-              },
-            ),
+                ),
 
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );

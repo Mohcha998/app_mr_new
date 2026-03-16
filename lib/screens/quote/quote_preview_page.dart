@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cross_file/cross_file.dart';
+
 import '../../models/quote_model.dart';
+import '../quote-gallery/quote_gallery_screen.dart';
 
 class QuotePreviewPage extends StatefulWidget {
   final Quote quote;
+
   const QuotePreviewPage({super.key, required this.quote});
 
   @override
@@ -17,12 +20,15 @@ class QuotePreviewPage extends StatefulWidget {
 class _QuotePreviewPageState extends State<QuotePreviewPage> {
   final ScreenshotController _screenshotController = ScreenshotController();
 
-  /// Fungsi untuk membagikan gambar quote
+  /// ===============================
+  /// SHARE QUOTE AS IMAGE
+  /// ===============================
   Future<void> _shareQuoteImage() async {
     try {
       final Uint8List? image = await _screenshotController.capture(
         pixelRatio: 2.0,
       );
+
       if (image == null) {
         ScaffoldMessenger.of(
           context,
@@ -45,7 +51,9 @@ class _QuotePreviewPageState extends State<QuotePreviewPage> {
     }
   }
 
-  /// Handler untuk menu titik tiga (⋮)
+  /// ===============================
+  /// POPUP MENU HANDLER
+  /// ===============================
   void _onMenuSelected(String value) {
     switch (value) {
       case 'edit':
@@ -55,9 +63,14 @@ class _QuotePreviewPageState extends State<QuotePreviewPage> {
           arguments: widget.quote,
         );
         break;
+
       case 'gallery':
-        Navigator.pushNamed(context, '/quotes-gallery');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const QuotesGalleryPage()),
+        );
         break;
+
       case 'share':
         _shareQuoteImage();
         break;
@@ -67,13 +80,15 @@ class _QuotePreviewPageState extends State<QuotePreviewPage> {
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
-    final double height = width * 4 / 3; // ✅ Rasio 3:4
+    final double height = width * 4 / 3;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          /// Tombol X di kanan atas
+          /// ===============================
+          /// CLOSE BUTTON
+          /// ===============================
           Positioned(
             top: 50,
             right: 20,
@@ -83,13 +98,15 @@ class _QuotePreviewPageState extends State<QuotePreviewPage> {
             ),
           ),
 
-          /// Konten utama (gambar + quote)
+          /// ===============================
+          /// MAIN QUOTE PREVIEW
+          /// ===============================
           Center(
             child: Screenshot(
               controller: _screenshotController,
               child: Container(
                 width: width * 0.85,
-                height: height * 0.85, // ✅ Menjaga rasio 3:4
+                height: height * 0.85,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
@@ -104,7 +121,7 @@ class _QuotePreviewPageState extends State<QuotePreviewPage> {
                   borderRadius: BorderRadius.circular(24),
                   child: Stack(
                     children: [
-                      /// Background image
+                      /// BACKGROUND
                       Image.asset(
                         "assets/images/9.jpg",
                         width: double.infinity,
@@ -112,14 +129,10 @@ class _QuotePreviewPageState extends State<QuotePreviewPage> {
                         fit: BoxFit.cover,
                       ),
 
-                      /// Overlay hitam transparan
-                      Container(
-                        width: double.infinity,
-                        height: double.infinity,
-                        color: Colors.black.withOpacity(0.45),
-                      ),
+                      /// DARK OVERLAY
+                      Container(color: Colors.black.withOpacity(0.45)),
 
-                      /// Teks utama (quote + signature)
+                      /// QUOTE TEXT
                       Positioned.fill(
                         child: Center(
                           child: Padding(
@@ -138,8 +151,6 @@ class _QuotePreviewPageState extends State<QuotePreviewPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-
-                                // ✅ Ganti author dengan gambar signature
                                 Image.asset(
                                   'assets/images/signature.png',
                                   height: 40,
@@ -151,54 +162,50 @@ class _QuotePreviewPageState extends State<QuotePreviewPage> {
                         ),
                       ),
 
-                      /// Tombol titik tiga di kanan bawah
+                      /// ===============================
+                      /// POPUP MENU
+                      /// ===============================
                       Positioned(
                         bottom: 14,
                         right: 12,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            PopupMenuButton<String>(
-                              icon: const Icon(
-                                Icons.more_vert,
-                                color: Colors.white,
-                                size: 26,
+                        child: PopupMenuButton<String>(
+                          icon: const Icon(
+                            Icons.more_vert,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                          onSelected: _onMenuSelected,
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(
+                              value: "edit",
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, size: 18),
+                                  SizedBox(width: 8),
+                                  Text("Edit Image"),
+                                ],
                               ),
-                              onSelected: _onMenuSelected,
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                  value: "edit",
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.edit, size: 18),
-                                      SizedBox(width: 8),
-                                      Text("Edit Image"),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: "gallery",
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.collections, size: 18),
-                                      SizedBox(width: 8),
-                                      Text("Quotes Gallery"),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: "share",
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.share, size: 18),
-                                      SizedBox(width: 8),
-                                      Text("Share"),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ),
-                            const SizedBox(height: 4),
+                            PopupMenuItem(
+                              value: "gallery",
+                              child: Row(
+                                children: [
+                                  Icon(Icons.collections, size: 18),
+                                  SizedBox(width: 8),
+                                  Text("Quotes Gallery"),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: "share",
+                              child: Row(
+                                children: [
+                                  Icon(Icons.share, size: 18),
+                                  SizedBox(width: 8),
+                                  Text("Share"),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),

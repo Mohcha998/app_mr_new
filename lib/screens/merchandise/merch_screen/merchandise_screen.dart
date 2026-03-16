@@ -4,8 +4,15 @@ import '../widgets/banner_section.dart';
 import '../widgets/brand_section.dart';
 import '../widgets/category_section.dart';
 
-class MerchandisePage extends StatelessWidget {
+class MerchandisePage extends StatefulWidget {
   const MerchandisePage({super.key});
+
+  @override
+  State<MerchandisePage> createState() => _MerchandisePageState();
+}
+
+class _MerchandisePageState extends State<MerchandisePage> {
+  String keyword = "";
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +23,7 @@ class MerchandisePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔥 HEADER: Back + Title (center)
+              /// HEADER
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -24,26 +31,18 @@ class MerchandisePage extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    // BACK BUTTON (KIRI)
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 22,
-                        color: Colors.black,
-                      ),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 22),
                     ),
-
-                    // TITLE (TENGAH)
-                    SizedBox(
+                    const SizedBox(
                       width: double.infinity,
                       child: Center(
                         child: Text(
                           "Merchandise",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
                           ),
                         ),
                       ),
@@ -54,20 +53,23 @@ class MerchandisePage extends StatelessWidget {
 
               const SizedBox(height: 5),
 
-              // SEARCH BAR
-              const SearchBarWidget(),
+              /// SEARCH
+              // SearchBarWidget(
+              //   onChanged: (value) {
+              //     setState(() {
+              //       keyword = value;
+              //     });
+              //   },
+              // ),
               const SizedBox(height: 20),
 
-              // BANNER
+              /// CONTENT
               const BannerSection(),
               const SizedBox(height: 20),
-
-              // BRANDS
               const BrandSection(),
               const SizedBox(height: 20),
 
-              // CATEGORIES
-              const CategorySection(),
+              CategorySection(searchKeyword: keyword),
             ],
           ),
         ),

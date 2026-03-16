@@ -1,7 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 class QuoteSharePage extends StatelessWidget {
   final String imagePath;
@@ -9,17 +14,19 @@ class QuoteSharePage extends StatelessWidget {
   final Offset textPosition;
   final double textBoxWidth;
   final String font;
-  final Color textColor; // <-- menerima warna dari editor
+  final Color textColor;
 
-  const QuoteSharePage({
+  QuoteSharePage({
     super.key,
     required this.imagePath,
     required this.quote,
     required this.textPosition,
     required this.textBoxWidth,
     required this.font,
-    required this.textColor, // <-- ditambahkan
+    required this.textColor,
   });
+
+  final GlobalKey _captureKey = GlobalKey();
 
   TextStyle _getFontStyle(String font, Color color, double size) {
     switch (font) {
@@ -44,6 +51,25 @@ class QuoteSharePage extends StatelessWidget {
       default:
         return TextStyle(fontFamily: "Helvetica", color: color, fontSize: size);
     }
+  }
+
+  /// ================== CAPTURE WIDGET TO IMAGE ==================
+  Future<File> _captureAndSaveImage() async {
+    RenderRepaintBoundary boundary =
+        _captureKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+
+    ui.Image image = await boundary.toImage(pixelRatio: 3);
+    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+    final directory = await getTemporaryDirectory();
+    final file = File(
+      "${directory.path}/quote_${DateTime.now().millisecondsSinceEpoch}.png",
+    );
+
+    await file.writeAsBytes(pngBytes);
+    return file;
   }
 
   @override
@@ -81,13 +107,10 @@ class QuoteSharePage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     actions: [
-                      // YES = exit
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
                         child: const Text("Yes"),
                       ),
-
-                      // NO = stay (pindah ke kanan sesuai permintaan)
                       ElevatedButton(
                         onPressed: () => Navigator.pop(context, false),
                         style: ElevatedButton.styleFrom(
@@ -108,81 +131,76 @@ class QuoteSharePage extends StatelessWidget {
           ),
         ],
       ),
-
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
             child: AspectRatio(
-              aspectRatio: 3 / 4, // <-- FIXED RATIO 3:4
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Stack(
-                  children: [
-                    isAsset
-                        ? Image.asset(
-                            imagePath,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                          )
-                        : Image.file(
-                            File(imagePath),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
+              aspectRatio: 3 / 4,
+              child: RepaintBoundary(
+                key: _captureKey,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Stack(
+                    children: [
+                      isAsset
+                          ? Image.asset(
+                              imagePath,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            )
+                          : Image.file(
+                              File(imagePath),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                      Positioned(
+                        left: textPosition.dx,
+                        top: textPosition.dy,
+                        child: SizedBox(
+                          width: textBoxWidth,
+                          child: Column(
+                            children: [
+                              Text(
+                                quote,
+                                textAlign: TextAlign.center,
+                                style: _getFontStyle(font, textColor, 22)
+                                    .copyWith(
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 3,
+                                          color: Colors.black.withOpacity(0.4),
+                                          offset: const Offset(1, 1),
+                                        ),
+                                      ],
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Image.asset(
+                                "assets/images/signature.png",
+                                height: 32,
+                                color: textColor,
+                              ),
+                            ],
                           ),
-
-                    // ================= TEXT + SIGNATURE =================
-                    Positioned(
-                      left: textPosition.dx,
-                      top: textPosition.dy,
-                      child: SizedBox(
-                        width: textBoxWidth,
-                        child: Column(
-                          children: [
-                            Text(
-                              quote,
-                              textAlign: TextAlign.center,
-                              style: _getFontStyle(font, textColor, 22)
-                                  .copyWith(
-                                    shadows: [
-                                      Shadow(
-                                        blurRadius: 3,
-                                        color: Colors.black.withOpacity(0.4),
-                                        offset: const Offset(1, 1),
-                                      ),
-                                    ],
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Image.asset(
-                              "assets/images/signature.png",
-                              height: 32,
-                              color: textColor,
-                            ),
-                          ],
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-
           const SizedBox(height: 24),
-
           ElevatedButton(
             onPressed: () async {
               try {
-                if (imagePath.startsWith('/')) {
-                  await Share.shareXFiles([XFile(imagePath)], text: quote);
-                } else {
-                  await Share.share(quote);
-                }
+                final file = await _captureAndSaveImage();
+                await Share.shareXFiles([XFile(file.path)]);
               } catch (e) {
-                debugPrint("Error sharing: $e");
+                debugPrint("Share error: $e");
               }
             },
             style: ElevatedButton.styleFrom(
@@ -199,7 +217,6 @@ class QuoteSharePage extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 40),
         ],
       ),

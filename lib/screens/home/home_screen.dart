@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:ui';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<Quote> _quoteFuture;
   late Future<List<YoutubeVideo>> _futureVideos;
 
+  final GlobalKey _quoteKey = GlobalKey();
+
   bool _hasShownPopup = false;
   AdsPopupModel? _popupData;
 
@@ -50,34 +54,45 @@ class _HomeScreenState extends State<HomeScreen> {
     _futureVideos = YoutubeService.getLatestVideos();
 
     // LOAD POPUP ADS
-    AdsService.getPopup().then((data) {
-      if (data != null && !_hasShownPopup) {
-        _hasShownPopup = true;
-        _popupData = data;
+    // AdsService.getPopup().then((data) {
+    //   if (data != null && !_hasShownPopup) {
+    //     _hasShownPopup = true;
+    //     _popupData = data;
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          showDialog(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) => AdsPopup(imageUrl: data.imageUrl),
-          );
-        });
-      }
-    });
+    //     WidgetsBinding.instance.addPostFrameCallback((_) {
+    //       if (!mounted) return;
+    //       showDialog(
+    //         context: context,
+    //         barrierDismissible: true,
+    //         builder: (_) => AdsPopup(imageUrl: data.imageUrl),
+    //       );
+    //     });
+    //   }
+    // });
   }
 
   void _shareQuote(Quote quote) async {
+    Future<File> _captureQuoteImage() async {
+      final boundary =
+          _quoteKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+
+      final image = await boundary.toImage(pixelRatio: 3);
+      final byteData = await image.toByteData(format: ImageByteFormat.png);
+      final pngBytes = byteData!.buffer.asUint8List();
+
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/quote.png');
+      await file.writeAsBytes(pngBytes);
+
+      return file;
+    }
+
     final message =
         '"${quote.text}"\n\n— ${quote.author ?? "Merry Riana"}\n\n#MerryRiana #Inspiration';
 
     try {
-      final byteData = await rootBundle.load('assets/images/signature.png');
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/signature.png');
-      await file.writeAsBytes(byteData.buffer.asUint8List());
-
-      await Share.shareXFiles([XFile(file.path)], text: message);
+      final imageFile = await _captureQuoteImage();
+      await Share.shareXFiles([XFile(imageFile.path)], text: message);
     } catch (e) {
       Share.share(message);
     }
@@ -126,55 +141,58 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Stack(
-                              children: [
-                                Image.asset(
-                                  "assets/images/9.jpg",
-                                  width: double.infinity,
-                                  height: 500,
-                                  fit: BoxFit.cover,
-                                ),
-                                Container(
-                                  width: double.infinity,
-                                  height: 500,
-                                  color: Colors.black.withOpacity(0.4),
-                                ),
-                                Positioned.fill(
-                                  child: Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Flexible(
-                                            child: Text(
-                                              quote.text,
-                                              textAlign: TextAlign.center,
-                                              softWrap: true,
-                                              style: const TextStyle(
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.white,
+                          child: RepaintBoundary(
+                            key: _quoteKey,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Stack(
+                                children: [
+                                  Image.asset(
+                                    "assets/images/9.jpg",
+                                    width: double.infinity,
+                                    height: 500,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Container(
+                                    width: double.infinity,
+                                    height: 500,
+                                    color: Colors.black.withOpacity(0.4),
+                                  ),
+                                  Positioned.fill(
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                quote.text,
+                                                textAlign: TextAlign.center,
+                                                softWrap: true,
+                                                style: const TextStyle(
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.white,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Image.asset(
-                                            'assets/images/signature.png',
-                                            height: 40,
-                                            fit: BoxFit.contain,
-                                          ),
-                                        ],
+                                            const SizedBox(height: 16),
+                                            Image.asset(
+                                              'assets/images/signature.png',
+                                              height: 40,
+                                              fit: BoxFit.contain,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -234,7 +252,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: SizedBox(
                       width: 160,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => QuotesGalleryPage(),
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFD9D9D9),
                           elevation: 0,
